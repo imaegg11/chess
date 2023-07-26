@@ -33,6 +33,14 @@ class engine:
         bestMove[0], bestMove[1], bestMove[2], bestMove[3] = bestMove[1], bestMove[0], bestMove[3], bestMove[2]
         return bestMove
     
+    '''
+
+    Was going to use this.
+    Decided I didn't want to anymore.
+    Left here cause I am lazy.
+
+    '''
+
     def getAndFormatBestMoveWeb(self):
         lookUpTable = {
             'p': 1,
