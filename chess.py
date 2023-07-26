@@ -52,6 +52,7 @@ class board():
         self.botActive = None
         self.botColor = None
         self.botDepth = None
+        self.reversed = [0, 8, 1]
 
     def setUpBoard(self):
 
@@ -248,7 +249,7 @@ class board():
 
     def drawBoard(self):
         self.updateDimensions()
-        for i in range(-8, 0, 1):
+        for i in range(self.reversed[0], self.reversed[1], self.reversed[2]):
             for j in range(8):
                 locationY = self.offSetH + ((i + 8) if i < 0 else i) * self.squareSize
                 k = (i * -1 - 1) if i < 0 else i
@@ -340,38 +341,39 @@ class board():
             self.isGameRunning = False
 
     def clickTile(self, x, y):
-        for i in range(8):
+        for i in range(self.reversed[0], self.reversed[1], self.reversed[2]):
             for j in range(8):
-                if x > self.offSetW + j * self.squareSize and y > self.offSetH + i * self.squareSize and x < self.offSetW + (j+1) * self.squareSize and y < self.offSetH + (i+1) * self.squareSize:
-                    if self.currentSelectedPiece == [None, None] and self.board[i][j].color != 0 and self.board[i][j].color == self.currentMover:
-                        self.currentSelectedPiece = [i, j]
+                k = (i * -1 - 1) if i < 0 else i
+                if x > self.offSetW + j * self.squareSize and y > self.offSetH + ((i + 8) if i < 0 else i) * self.squareSize and x < self.offSetW + (j+1) * self.squareSize and y < self.offSetH + ((i + 8) if i < 0 else i) * self.squareSize + self.squareSize:
+                    if self.currentSelectedPiece == [None, None] and self.board[k][j].color != 0 and self.board[k][j].color == self.currentMover:
+                        self.currentSelectedPiece = [k, j]
                         legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
                         self.addLegalMoves(legalMoves)
                         if self.timeOfStartOfMove == 0:
                             self.timeOfStartOfMove = int(time.time() * 1000)
                             self.isGameRunning = True
-                    elif [i, j] == self.currentSelectedPiece:
+                    elif [k, j] == self.currentSelectedPiece:
                         legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
                         self.currentSelectedPiece = [None, None]
                         self.resetLegalMoves()
-                    elif self.board[i][j].color == self.currentMover:
+                    elif self.board[k][j].color == self.currentMover:
                         self.resetLegalMoves()
-                        self.currentSelectedPiece = [i, j]
+                        self.currentSelectedPiece = [k, j]
                         legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
                         self.addLegalMoves(legalMoves)
-                    elif self.currentSelectedPiece != [None, None] and self.board[i][j].color != self.currentMover:
+                    elif self.currentSelectedPiece != [None, None] and self.board[k][j].color != self.currentMover:
                         legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
-                        if [i, j] in legalMoves:
+                        if [k, j] in legalMoves:
                             prevPieceData = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]]
                             if prevPieceData.piece == 1:
-                                prevPieceData.enPassant(self.board, self.lastPieceMoved, i, j)
+                                prevPieceData.enPassant(self.board, self.lastPieceMoved, k, j)
                             elif prevPieceData.piece == 6:
-                                prevPieceData.castling(self.board, i, j)
-                            self.board[i][j] = piece(prevPieceData.color, prevPieceData.piece, i, j, self.squareSize, prevPieceData.numberOfMoves + 1)
+                                prevPieceData.castling(self.board, k, j)
+                            self.board[k][j] = piece(prevPieceData.color, prevPieceData.piece, k, j, self.squareSize, prevPieceData.numberOfMoves + 1)
                             self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]] = piece(0, 1, 0, 0, self.squareSize, 0)
-                            if self.board[i][j].piece == 1:
-                                self.board[i][j].promotion()
-                            self.endOfTurn(i, j)
+                            if self.board[k][j].piece == 1:
+                                self.board[k][j].promotion()
+                            self.endOfTurn(k, j)
 
     def recieveAndUpdateBotMove(self):
         while True:
@@ -458,6 +460,8 @@ class board():
     def convertConfigParams(self, configs):
         self.botActive, self.botColor, self.prevBtime, self.prevWtime, self.botDepth = configs
         self.Btime, self.Wtime = self.prevBtime, self.prevWtime
+        if self.botActive and self.botColor == -1:
+            self.reversed = [-8, 0, 1]
 
 
 run = True
