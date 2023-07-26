@@ -435,12 +435,18 @@ class board():
         board.resume()
 
     def manageTurn(self, x, y, clicked):
-        if self.currentMover != self.botColor:
-            if clicked:
-                self.clickTile(x, y)
-        else:
-            if self.botPaused:
-                self.resume()
+        if self.botActive:
+            if self.currentMover != self.botColor:
+                if clicked:
+                    self.clickTile(x, y)
+            else:
+                if self.timeOfStartOfMove == 0:
+                    self.timeOfStartOfMove = int(time.time() * 1000)
+                    self.isGameRunning = True
+                if self.botPaused:
+                    self.resume()
+        elif clicked:
+            self.clickTile(x, y)
     
     def readConfigs(self):
         try:
