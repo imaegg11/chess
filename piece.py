@@ -1,4 +1,4 @@
-import pygame, copy, os
+import pygame, copy, os, io
 
 class piece():
     def __init__(self, color, piece, x, y, size, numberOfMoves):
@@ -17,14 +17,23 @@ class piece():
         self.y = y
         self.size = size
         self.path = path = os.path.dirname(os.path.abspath(__file__)) + "\\assets\\"
-        self.pieceImg = pygame.transform.scale(pygame.image.load(self.path + ("white" if color == -1 else "black") + self.lookUpTable[piece] + ".png").convert_alpha(), (size, size))
+        self.pieceImg = pygame.transform.scale(pygame.image.load(self.path + ("white" if color == -1 else "black") + self.lookUpTable[piece] + ".svg").convert_alpha(), (size, size))
         self.numberOfMoves = numberOfMoves
         self.lastPieceMoved = [None, None]
         self.recursionStopper = True
         self.enPassantTry = False
 
     def updatePieceImg(self):
-        self.pieceImg = pygame.transform.scale(pygame.image.load(self.path + ("white" if self.color == -1 else "black") + self.lookUpTable[self.piece] + ".png").convert_alpha(), (self.size, self.size))
+        self.pieceImg = self.load_and_scale_svg(self.path + ("white" if self.color == -1 else "black") + self.lookUpTable[self.piece] + ".svg", (self.size/45))
+
+    # Thank you stack overflow
+
+    def load_and_scale_svg(self, filename, scale):
+        svg_string = open(filename, "rt").read()
+        start = svg_string.find('<svg')    
+        if start > 0:
+            svg_string = svg_string[:start+4] + f' transform="scale({scale})"' + svg_string[start+4:]
+        return pygame.image.load(io.BytesIO(svg_string.encode()))
 
     def returnPiece(self):
         if self.color != 0:
