@@ -248,12 +248,15 @@ class board():
 
     def drawBoard(self):
         self.updateDimensions()
-        for i in range(8):
+        for i in range(-8, 0, 1):
             for j in range(8):
-                square = pygame.Rect(self.offSetW + j * self.squareSize, self.offSetH + i * self.squareSize, self.squareSize, self.squareSize)
-                pygame.draw.rect(screen, self.boardColor[i][j] , square)
-                if self.board[i][j].color != 0:
-                    screen.blit(self.board[i][j].returnPiece(), (self.offSetW + j * self.squareSize, self.offSetH + i * self.squareSize))
+                locationY = self.offSetH + ((i + 8) if i < 0 else i) * self.squareSize
+                k = (i * -1 - 1) if i < 0 else i
+
+                square = pygame.Rect(self.offSetW + j * self.squareSize, locationY, self.squareSize, self.squareSize)
+                pygame.draw.rect(screen, self.boardColor[k][j] , square)
+                if self.board[k][j].color != 0:
+                    screen.blit(self.board[k][j].returnPiece(), (self.offSetW + j * self.squareSize, locationY))
                     #self.board[i][j].returnPiece(self.offSetW + j * self.squareSize, self.offSetH + i * self.squareSize)
         #self.renderLegalMoves()
 
@@ -380,34 +383,32 @@ class board():
                 if self.exit:
                     break
 
-                if self.currentMover == 1:
-                    print('ran')
-                    start = time.time()
+                start = time.time()
 
-                    self.bot.updateStockFishPosition(self.toFEN())
-                    botMove = self.bot.getAndFormatBestMove()
+                self.bot.updateStockFishPosition(self.toFEN())
+                botMove = self.bot.getAndFormatBestMove()
 
-                    prevPieceData = self.board[botMove[0]][botMove[1]]
-                    if prevPieceData.piece == 1:
-                        prevPieceData.enPassant(self.board, self.lastPieceMoved, botMove[2], botMove[3])
-                    elif prevPieceData.piece == 6:
-                        prevPieceData.castling(self.board, botMove[2], botMove[3])
+                prevPieceData = self.board[botMove[0]][botMove[1]]
+                if prevPieceData.piece == 1:
+                    prevPieceData.enPassant(self.board, self.lastPieceMoved, botMove[2], botMove[3])
+                elif prevPieceData.piece == 6:
+                    prevPieceData.castling(self.board, botMove[2], botMove[3])
 
-                    self.board[botMove[2]][botMove[3]] = piece(prevPieceData.color, prevPieceData.piece, botMove[2], botMove[3], self.squareSize, prevPieceData.numberOfMoves + 1)
-                    self.board[botMove[0]][botMove[1]] = piece(0, 1, 0, 0, self.squareSize, 0)
+                self.board[botMove[2]][botMove[3]] = piece(prevPieceData.color, prevPieceData.piece, botMove[2], botMove[3], self.squareSize, prevPieceData.numberOfMoves + 1)
+                self.board[botMove[0]][botMove[1]] = piece(0, 1, 0, 0, self.squareSize, 0)
 
-                    if self.board[botMove[2]][botMove[3]].piece == 1 and len(botMove) == 5:
-                        self.board[botMove[2]][botMove[3]].piece = botMove[-1]
-                        self.board[botMove[2]][botMove[3]].updatePieceImg()
+                if self.board[botMove[2]][botMove[3]].piece == 1 and len(botMove) == 5:
+                    self.board[botMove[2]][botMove[3]].piece = botMove[-1]
+                    self.board[botMove[2]][botMove[3]].updatePieceImg()
 
 
 
-                    self.endOfTurn(botMove[2], botMove[3])
-                    
-                    end = time.time()
-                    print(end-start)
+                self.endOfTurn(botMove[2], botMove[3])
+                
+                end = time.time()
+                #print(end-start)
 
-                    self.pause()
+                self.pause()
             #time.sleep(0.1)
     '''
 
@@ -502,4 +503,4 @@ while run:
 
 
     pygame.display.update()
-
+    #run = False
