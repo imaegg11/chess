@@ -13,10 +13,11 @@ Holy crap does all of the following code suck. I will refactor the code later.
 
 pygame.init()
 
+assetsPath = os.path.dirname(os.path.abspath(__file__)) + "\\assets\\"
 path = os.path.dirname(os.path.abspath(__file__)) + "\\"
 screen = pygame.display.set_mode((900, 500), pygame.RESIZABLE)
 pygame.display.set_caption('Chess')
-iconImg = pygame.image.load(path + "blackRook.png")
+iconImg = pygame.image.load(assetsPath + "blackRook.png")
 pygame.display.set_icon(iconImg)
 
 class board():
@@ -37,10 +38,10 @@ class board():
         self.blackPieces = []
         self.pastMoves = {boardSetup: 1}
         self.timeOfStartOfMove = 0
-        self.prevBtime = 180000
-        self.prevWtime = 180000
-        self.Btime = 180000
-        self.Wtime = 180000
+        self.prevBtime = None
+        self.prevWtime = None
+        self.Btime = None
+        self.Wtime = None
         self.numberOfFullmoves = 0
         self.bot = engine()
         self.isGameRunning = False
@@ -48,6 +49,9 @@ class board():
         self.botLock = threading.Condition(threading.Lock())
         self.botPaused = True
         self.exit = False
+        self.botActive = None
+        self.botColor = None
+        self.botDepth = None
 
     def setUpBoard(self):
 
@@ -377,7 +381,7 @@ class board():
                     break
 
                 if self.currentMover == 1:
-
+                    print('ran')
                     start = time.time()
 
                     self.bot.updateStockFishPosition(self.toFEN())
@@ -428,7 +432,7 @@ class board():
         board.resume()
 
     def manageTurn(self, x, y, clicked):
-        if self.currentMover == -1:
+        if self.currentMover != self.botColor:
             if clicked:
                 self.clickTile(x, y)
         else:
@@ -439,19 +443,20 @@ class board():
         try:
             with open(path + "config.json") as configFile:
                 configInfo = json.loads(configFile.read())
-                if config(configInfo).checkConfig() == False:
+                configClass = config(configInfo)
+                if configClass.checkConfig() == False:
                     self.endThread()
                     sys.exit()
                 else:
-                    self.parseConfigFile(configInfo)
+                    self.convertConfigParams(configClass.parseConfigs())
         except:
             config({}).throwErrorMesssage(f"FileNotFoundError: Config.json file was not found at location {path}config.json")
             self.endThread()
             sys.exit()
     
-    def parseConfigFile(self, configs):
-        print(configs)
-
+    def convertConfigParams(self, configs):
+        self.botActive, self.botColor, self.prevBtime, self.prevWtime, self.botDepth = configs
+        self.Btime, self.Wtime = self.prevBtime, self.prevWtime
 
 
 run = True

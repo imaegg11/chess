@@ -16,7 +16,7 @@ class piece():
         self.x = x
         self.y = y
         self.size = size
-        self.path = path = os.path.dirname(os.path.abspath(__file__)) + "\\"
+        self.path = path = os.path.dirname(os.path.abspath(__file__)) + "\\assets\\"
         self.pieceImg = pygame.transform.scale(pygame.image.load(self.path + ("white" if color == -1 else "black") + self.lookUpTable[piece] + ".png").convert_alpha(), (size, size))
         self.numberOfMoves = numberOfMoves
         self.lastPieceMoved = [None, None]

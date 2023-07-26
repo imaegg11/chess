@@ -48,3 +48,7 @@ class config:
     def throwErrorMesssage(self, errorMessage):
         print(f'\033[91m{errorMessage}\033[0m')
         #return False
+    
+    def parseConfigs(self):
+        configs = [self.configSettings[i] for i in self.properConfigHeaders]
+        return configs
