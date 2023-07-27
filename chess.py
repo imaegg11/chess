@@ -53,6 +53,7 @@ class board():
         self.botColor = None
         self.botDepth = None
         self.reversed = [0, 8, 1]
+        self.secondColorLayer = [[None for i in range(8)] for i in range(8)]
 
     def setUpBoard(self):
 
@@ -223,25 +224,26 @@ class board():
 
 
     def drawTimeControls(self):
-        myfont = pygame.font.SysFont("monospace", int(self.squareSize * 0.5))
-        wTime = myfont.render(self.msToString(self.Wtime), True, (255, 255, 255))
-        bTime = myfont.render(self.msToString(self.Btime), True, (255, 255, 255))
+        reversed = (self.reversed != [0, 8, 1])
+        myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.65))
+        wTime = myfont.render(self.msToString(self.Btime if reversed else self.Wtime), True, (255, 255, 255))
+        bTime = myfont.render(self.msToString(self.Wtime if reversed else self.Btime), True, (255, 255, 255))
 
         wTimeCenter = wTime.get_rect()
         bTimeCenter = bTime.get_rect()
 
         offSet = (self.dimensions[0] - self.boardSize)/2 + self.boardSize + (self.dimensions[0] - self.boardSize)/4
 
-        wTimeCenter.center = (offSet, self.dimensions[1]/2 + 100)
-        bTimeCenter.center = (offSet, self.dimensions[1]/2 - 100)
+        wTimeCenter.center = (offSet, self.dimensions[1]/2 + self.dimensions[1]/4)
+        bTimeCenter.center = (offSet, self.dimensions[1]/2 - self.dimensions[1]/4)
 
         screen.blit(wTime, wTimeCenter)
         screen.blit(bTime, bTimeCenter)
         self.drawStockFishLevel()
 
     def drawStockFishLevel(self):
-        myfont = pygame.font.SysFont("monospace", int(self.squareSize * 0.4))
-        stockfishText = myfont.render("Stockfish Level: 1", True, (255, 255, 255))
+        myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.5))
+        stockfishText = myfont.render(f"Stockfish Level: {self.botDepth}", True, (255, 255, 255))
         stockfishCenter = stockfishText.get_rect()
         stockfishCenter.center = ((self.dimensions[0] - self.boardSize)/4, self.dimensions[1]/2)
         screen.blit(stockfishText, stockfishCenter)
@@ -256,6 +258,8 @@ class board():
 
                 square = pygame.Rect(self.offSetW + j * self.squareSize, locationY, self.squareSize, self.squareSize)
                 pygame.draw.rect(screen, self.boardColor[k][j] , square)
+                if self.secondColorLayer[k][j] != None:
+                    pygame.draw.rect(screen, self.secondColorLayer[k][j] , square)
                 if self.board[k][j].color != 0:
                     screen.blit(self.board[k][j].returnPiece(), (self.offSetW + j * self.squareSize, locationY))
                     #self.board[i][j].returnPiece(self.offSetW + j * self.squareSize, self.offSetH + i * self.squareSize)
@@ -274,6 +278,9 @@ class board():
                     color = (235, 210, 185) if self.boardColor[i][j] == (161, 111, 92) else (161, 111, 92)
                     pygame.draw.circle(screen, color, (centerW, centerH), self.squareSize/5)
     '''
+
+    def resetSecondLayerColours(self):
+        self.secondColorLayer = [[None for i in range(8)] for i in range(8)]
 
     def resetLegalMoves(self):
         self.boardColor = [[(235, 210, 185) if i % 2 == 1 else (161, 111, 92) for i in range(i,i+8)] for i in range(1,9)]
@@ -311,6 +318,11 @@ class board():
                 self.isGameRunning = False
 
     def endOfTurn(self, i , j):
+
+        self.resetSecondLayerColours()
+        self.secondColorLayer[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]] = (191, 154, 94) if self.currentSelectedPiece[0] % 2 != self.currentSelectedPiece[1] % 2 else (211, 199, 121)
+        self.secondColorLayer[i][j] = (191, 154, 94) if i % 2 != j % 2 else (211, 199, 121)
+
         if self.currentMover == 1:
             self.numberOfFullmoves += 1
 
@@ -389,7 +401,7 @@ class board():
 
                 self.bot.updateStockFishPosition(self.toFEN())
                 botMove = self.bot.getAndFormatBestMove()
-
+                self.currentSelectedPiece = [botMove[0], botMove[1]]
                 prevPieceData = self.board[botMove[0]][botMove[1]]
                 if prevPieceData.piece == 1:
                     prevPieceData.enPassant(self.board, self.lastPieceMoved, botMove[2], botMove[3])
@@ -468,6 +480,8 @@ class board():
         self.Btime, self.Wtime = self.prevBtime, self.prevWtime
         if self.botActive and self.botColor == -1:
             self.reversed = [-8, 0, 1]
+        
+        self.bot.stockfish.set_depth = self.botDepth
 
 
 run = True
@@ -506,6 +520,9 @@ while run:
             if width/height < 1.8:
                 width = height * 1.8
             screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+        elif event.type == pygame.KEYDOWN:
+            if event.key == 120:
+                board.reversed = [-8, 0, 1] if board.reversed != [-8, 0, 1] else [0, 8, 1]
         else:
             board.manageTurn(-1, -1, False)
 
