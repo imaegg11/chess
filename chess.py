@@ -53,7 +53,7 @@ class board():
         self.exit = False
         self.botActive = None
         self.botColor = None
-        self.botDepth = None
+        self.botLevel = None
         self.reversed = [0, 8, 1]
 
     def setUpBoard(self):
@@ -244,7 +244,7 @@ class board():
 
     def drawStockFishLevel(self):
         myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.5))
-        stockfishText = myfont.render(f"Stockfish Level: {self.botDepth}", True, (255, 255, 255))
+        stockfishText = myfont.render(f"Stockfish Level: {self.botLevel}", True, (255, 255, 255))
         stockfishCenter = stockfishText.get_rect()
         stockfishCenter.center = ((self.dimensions[0] - self.boardSize)/4, self.dimensions[1]/2)
         screen.blit(stockfishText, stockfishCenter)
@@ -464,18 +464,19 @@ class board():
         board.resume()
 
     def manageTurn(self, x, y, clicked):
-        if self.botActive:
-            if self.currentMover != self.botColor:
-                if clicked:
-                    self.clickTile(x, y)
-            else:
-                if self.timeOfStartOfMove == 0:
-                    self.timeOfStartOfMove = int(time.time() * 1000)
-                    self.isGameRunning = True
-                if self.botPaused:
-                    self.resume()
-        elif clicked:
-            self.clickTile(x, y)
+        if self.isGameRunning or self.timeOfStartOfMove == 0:
+            if self.botActive:
+                if self.currentMover != self.botColor:
+                    if clicked:
+                        self.clickTile(x, y)
+                else:
+                    if self.timeOfStartOfMove == 0:
+                        self.timeOfStartOfMove = int(time.time() * 1000)
+                        self.isGameRunning = True
+                    if self.botPaused:
+                        self.resume()
+            elif clicked:
+                self.clickTile(x, y)
     
     def readConfigs(self):
         try:
@@ -487,24 +488,24 @@ class board():
                     sys.exit()
                 else:
                     self.convertConfigParams(configClass.parseConfigs())
-        except:
+        except FileNotFoundError:
             config({}).throwErrorMesssage(f"FileNotFoundError: Config.json file was not found at location {path}config.json")
             self.endThread()
             sys.exit()
     
     def convertConfigParams(self, configs):
-        self.botActive, self.botColor, self.prevBtime, self.prevWtime, self.botDepth = configs
+        self.botActive, self.botColor, self.prevBtime, self.prevWtime, self.botLevel = configs
         self.Btime, self.Wtime = self.prevBtime, self.prevWtime
         if self.botActive and self.botColor == -1:
             self.reversed = [-8, 0, 1]
         
-        self.bot.stockfish.set_depth = self.botDepth
+        self.bot.stockfish.set_skill_level = self.botLevel
 
 
 run = True
 
-board = board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
-#board = board("7k/44/8/3P4/8/5K2/3p4/8")
+#board = board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+board = board("7k/44/8/3P4/8/5K2/3p4/8")
 #board = board("2k1r2r/ppp2ppR/8/8/8/8/8/4K3")
 #board = board("k7/R3b3/8/8/R7/8/8/R3K2R")
 board.setUpBoard()

@@ -2,10 +2,16 @@ import stockfish, os, requests
 
 class engine:
 
+    '''
+    
+    Cannot tell if stockfish level actually does something... 
+    Someone please check...
+    
+    '''
+
     def __init__(self):
         self.stockfish = stockfish.Stockfish(
                 path=os.path.dirname(os.path.abspath(__file__)) + "\\" + "stockfish\stockfish-windows-x86-64-avx2.exe",
-                depth=20,
             )
 
         self.fenString = ""
