@@ -557,6 +557,12 @@ class board():
         self.setUpBoard()
         self.readConfigs()
 
+    def resign(self):
+        self.isGameRunning = False
+        if self.botActive:
+            self.gameResultText = "Black Wins By\nResignation" if self.botColor == 1 else "White Wins By\nResignation"
+        else:
+            self.gameResultText = "Black Wins By\nResignation" if self.currentMover == -1 else "White Wins By\nResignation"
 run = True
 
 board = board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
@@ -600,6 +606,8 @@ while run:
                 board.reset()
             elif event.key == 115 and board.botActive and board.timeOfStartOfMove == 0 and board.botColor == -1:
                 board.isGameRunning = True
+            elif event.key == 27:
+                board.resign()
         board.manageTurn(-1, -1, False)
 
     board.drawTimeControls()
