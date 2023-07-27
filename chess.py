@@ -247,7 +247,7 @@ class board():
 
     def drawStockFishLevel(self):
         myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.5))
-        stockfishText = myfont.render(f"Stockfish Level: {self.botLevel}", True, (255, 255, 255))
+        stockfishText = myfont.render(f"Stockfish Level: {self.botLevel if self.botActive else 'N/A'}", True, (255, 255, 255))
         stockfishCenter = stockfishText.get_rect()
         stockfishCenter.center = ((self.dimensions[0] - self.boardSize)/4, self.dimensions[1]/2)
         screen.blit(stockfishText, stockfishCenter)
