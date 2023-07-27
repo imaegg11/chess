@@ -388,7 +388,7 @@ class board():
         if gameResult != -1:
             match gameResult:
                 case 0:
-                    self.gameResultText = "White Won" if self.currentMover == 1 else "Black Won"
+                    self.gameResultText = "Checkmate By White" if self.currentMover == 1 else "Checkmate By Black"
                 case 1:
                     self.gameResultText = "Stalemate"
                 case 2:
