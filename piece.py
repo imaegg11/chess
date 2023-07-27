@@ -277,6 +277,7 @@ class piece():
                 board[self.x][self.y-1] = piece(self.color, 4, self.x, self.y-1, self.size, 1)
                 rightRook.color = 0
 
+
     def keepTrack(self, board):
         whitePieces = []
         blackPieces = []

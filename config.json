@@ -1,7 +1,7 @@
 {
-    "BotActive": true, 
-    "BotColor": 1,
+    "BotActive": false, 
+    "BotColor": -1,
     "StockfishLevel": 10, 
-    "BlackTime": 180215000,
+    "BlackTime": 180000,
     "WhiteTime": 180000
 }
