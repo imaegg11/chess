@@ -117,7 +117,8 @@ class piece():
                 self.promotion()
             else:
                 self.piece = promotion
-                self.pieceImg = pygame.transform.scale(pygame.image.load(("white" if self.color == -1 else "black") + self.lookUpTable[self.piece] + ".png").convert_alpha(), (self.size, self.size))
+                self.updatePieceImg()
+                #self.pieceImg = pygame.transform.scale(pygame.image.load(("white" if self.color == -1 else "black") + self.lookUpTable[self.piece] + ".svg").convert_alpha(), (self.size, self.size))
 
     def enPassant(self, board, lastPieceMoved, x, y):
         if self.y != 7 and x == self.x + self.color and self.y+1 == y and board[self.x][self.y+1].x == int((self.color + 2)*0.5 + 2.5) and board[self.x][self.y+1].color == (self.color * -1) and [self.x, self.y+1] == lastPieceMoved and board[self.x][self.y+1].piece == 1 and board[self.x][self.y+1].numberOfMoves == 1:
