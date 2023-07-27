@@ -34,6 +34,8 @@ class board():
         self.currentMover = -1
         self.lastPieceMoved = [None, None]
         self.boardColor = [[(235, 210, 185) if i % 2 == 1 else (161, 111, 92) for i in range(i,i+8)] for i in range(1,9)]
+        self.secondColorLayer = [[None for i in range(8)] for i in range(8)]
+        self.legalMovesLayer = [[None for i in range(8)] for i in range(8)]
         self.whitePieces = []
         self.blackPieces = []
         self.pastMoves = {boardSetup: 1}
@@ -53,7 +55,6 @@ class board():
         self.botColor = None
         self.botDepth = None
         self.reversed = [0, 8, 1]
-        self.secondColorLayer = [[None for i in range(8)] for i in range(8)]
 
     def setUpBoard(self):
 
@@ -260,6 +261,8 @@ class board():
                 pygame.draw.rect(screen, self.boardColor[k][j] , square)
                 if self.secondColorLayer[k][j] != None:
                     pygame.draw.rect(screen, self.secondColorLayer[k][j] , square)
+                if self.legalMovesLayer[k][j] != None:
+                    pygame.draw.rect(screen, self.legalMovesLayer[k][j] , square)
                 if self.board[k][j].color != 0:
                     screen.blit(self.board[k][j].returnPiece(), (self.offSetW + j * self.squareSize, locationY))
                     #self.board[i][j].returnPiece(self.offSetW + j * self.squareSize, self.offSetH + i * self.squareSize)
@@ -280,14 +283,14 @@ class board():
     '''
 
     def resetSecondLayerColours(self):
-        self.secondColorLayer = [[None for i in range(8)] for i in range(8)]
+        self.secondColorLayer = [[None for j in range(8)] for i in range(8)]
 
     def resetLegalMoves(self):
-        self.boardColor = [[(235, 210, 185) if i % 2 == 1 else (161, 111, 92) for i in range(i,i+8)] for i in range(1,9)]
+        self.legalMovesLayer = [[None for j in range(8)] for i in range(8)]
 
     def addLegalMoves(self, legalMoves):
         for i in legalMoves:
-            self.boardColor[i[0]][i[1]] = (64, 143, 190) if i[0] % 2 != i[1] % 2 else (91, 170, 215)
+            self.legalMovesLayer[i[0]][i[1]] = (64, 143, 190) if i[0] % 2 != i[1] % 2 else (91, 170, 215)
 
     def msToString(self, time):
         hour = time//3600000
@@ -337,6 +340,20 @@ class board():
         self.lastPieceMoved = [i, j]
         self.resetLegalMoves()
         self.keepTrack()
+
+        otherPieces = self.blackPieces if self.currentMover == -1 else self.whitePieces
+        pieces = self.whitePieces if self.currentMover == -1 else self.blackPieces
+
+        for i in otherPieces:
+            i.recursionStopper = False
+            if (i.findLegalMoves(self.board, self.lastPieceMoved)[1]):
+                for j in pieces:
+                    if j.piece == 6:
+                        self.secondColorLayer[j.x][j.y] = [234, 79, 79]
+                i.recursionStopper = True
+                break
+            i.recursionStopper = True
+
         gameResult = self.gameResult()
         if gameResult != -1:
             match gameResult:
