@@ -53,7 +53,7 @@ class board():
         self.exit = False
         self.botActive = None
         self.botColor = None
-        self.botLevel = None
+        self.botELO = None
         self.reversed = [0, 8, 1]
         self.gameResultText = ""
         self.botThread.start()
@@ -174,6 +174,45 @@ class board():
         fenString += f' {self.numberOfFullmoves}'
         return fenString
 
+    def checkIfPositionIsDrawn(self, pieces, otherPieces):
+        
+        '''
+        
+        Yes, I am creating an entirely seperate function just to check if the position is drawn by insufficient material
+        Yes, this is using Lichess' implementation of determining whether a position is a draw
+        Yes, this means that some position will be awarded unfairly
+        No, I do not care
+        
+        '''
+
+        piecesNum = [i.piece for i in pieces if i.piece != 6]
+        otherPiecesNum = [i.piece for i in otherPieces if i.piece != 6]
+
+        for i in pieces:
+            if i.piece == 1 or i.piece == 4 or i.piece == 5:
+                return False
+        
+        
+        if len(set(piecesNum)) > 1:
+            return False
+        if piecesNum.count(2) > 1:
+            return False
+        if piecesNum == [2] and 5 not in otherPiecesNum and len(otherPiecesNum) != 0:
+            return False
+        if piecesNum == [3] and 3 not in otherPiecesNum and 4 not in otherPiecesNum and 5 not in otherPiecesNum and len(otherPiecesNum) != 0:
+            return False
+        if (piecesNum + otherPiecesNum).count(3) > 1:
+            allPieces = pieces + otherPieces
+            coloursOfBishops = set()
+            for i in allPieces:
+                if i.piece == 3:
+                    coloursOfBishops.add(1 if i.x % 2 != i.y % 2 else 0)
+
+            if len(coloursOfBishops) == 2:
+                return False
+
+        return True
+
     def gameResult(self):
         pieces = self.whitePieces if self.currentMover == -1 else self.blackPieces
         otherPieces = self.blackPieces if self.currentMover == -1 else self.whitePieces
@@ -181,8 +220,12 @@ class board():
         check = False
 
         if self.currentMover == 1 and self.Wtime < 0:
+            if self.checkIfPositionIsDrawn(self.whitePieces if self.currentMover == -1 else self.blackPieces, self.blackPieces if self.currentMover == -1 else self.whitePieces):
+                return 5
             return 3
         elif self.currentMover == -1 and self.Btime < 0:
+            if self.checkIfPositionIsDrawn(self.whitePieces if self.currentMover == -1 else self.blackPieces, self.blackPieces if self.currentMover == -1 else self.whitePieces):
+                return 5
             return 4
 
         fenString = self.toFEN().split(" ")[0]
@@ -213,6 +256,9 @@ class board():
             else:
                 return 1
 
+        if self.checkIfPositionIsDrawn(self.whitePieces if self.currentMover == 1 else self.blackPieces, self.blackPieces if self.currentMover == 1 else self.whitePieces) == self.checkIfPositionIsDrawn(pieces, otherPieces) == True:
+            return 5 
+
         return -1
 
     def updateDimensions(self):
@@ -242,12 +288,12 @@ class board():
 
         screen.blit(wTime, wTimeCenter)
         screen.blit(bTime, bTimeCenter)
-        self.drawStockFishLevel()
+        self.drawStockfishELO()
         self.drawGameResult()
 
-    def drawStockFishLevel(self):
+    def drawStockfishELO(self):
         myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.5))
-        stockfishText = myfont.render(f"Stockfish Level: {self.botLevel if self.botActive else 'N/A'}", True, (255, 255, 255))
+        stockfishText = myfont.render(f"Stockfish ELO: {self.botELO if self.botActive else 'N/A'}", True, (255, 255, 255))
         stockfishCenter = stockfishText.get_rect()
         stockfishCenter.center = ((self.dimensions[0] - self.boardSize)/4, self.dimensions[1]/2)
         screen.blit(stockfishText, stockfishCenter)
@@ -348,6 +394,8 @@ class board():
                         self.gameResultText = "Black Won By Timeout"
                     case 4:
                         self.gameResultText = "White Won By Timeout"
+                    case 5:
+                        self.gameResultText = "Draw\nInsufficient Material"
                 self.isGameRunning = False
 
     def endOfTurn(self, i , j):
@@ -393,6 +441,8 @@ class board():
                     self.gameResultText = "Stalemate"
                 case 2:
                     self.gameResultText = "Draw - Three\nFold Repitition"
+                case 5:
+                    self.gameResultText = "Draw\nInsufficient Material"
             self.isGameRunning = False
 
     def clickTile(self, x, y):
@@ -520,12 +570,18 @@ class board():
             sys.exit()
     
     def convertConfigParams(self, configs):
-        self.botActive, self.botColor, self.prevBtime, self.prevWtime, self.botLevel = configs
+        self.botActive, self.botColor, self.prevBtime, self.prevWtime, self.botELO = configs
         self.Btime, self.Wtime = self.prevBtime, self.prevWtime
         if self.botActive and self.botColor == -1:
             self.reversed = [-8, 0, 1]
         
-        self.bot.stockfish.set_skill_level = self.botLevel
+        # Problem... Not sure how skill level works... so I just set it to the rating divided by 100 floored
+        # Probably won't break anything... right...?
+
+        self.bot.stockfish.update_engine_parameters({
+            "UCI_Elo": self.botELO,
+            "Skill Level": self.botELO//100
+        })
 
     def reset(self):
 
@@ -566,9 +622,12 @@ class board():
 run = True
 
 board = board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+# Test Positions
 #board = board("7k/44/8/3P4/8/5K2/3p4/8")
 #board = board("2k1r2r/ppp2ppR/8/8/8/8/8/4K3")
 #board = board("k7/R3b3/8/8/R7/8/8/R3K2R")
+#board = board("8/8/k7/8/8/3rB3/2K5/8")
+
 board.setUpBoard()
 board.readConfigs()
 
@@ -606,7 +665,7 @@ while run:
                 board.reset()
             elif event.key == 115 and board.botActive and board.timeOfStartOfMove == 0 and board.botColor == -1:
                 board.isGameRunning = True
-            elif event.key == 27:
+            elif event.key == 113 and board.isGameRunning:
                 board.resign()
         board.manageTurn(-1, -1, False)
 
