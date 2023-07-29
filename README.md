@@ -37,4 +37,4 @@ Configs can be found in the config.json file. Settings should be self-explanator
 Read the error message. If it is in red, read it and fix the issue. If it's not, cry about it because there's a high likely chance I am not fixing the issue. 
 
 ## If You Want To Fix This Program
-If you want to fix this program, fork the repository and die while reading my code. It's not the best code and it is probably the worst code you will ever read. I forgot how half the code works. Also enjoy the comments while you are at it. 
+If you want to fix this program, fork the repository and die while reading my code. It's is horrendous and it is probably the worst code you will ever read. I forgot how half the code works. Also enjoy the comments while you are at it. 
