@@ -453,8 +453,6 @@ class board():
                     self.gameResultText = "Draw\nFifty Rule Move"
             self.isGameRunning = False
 
-        print(self.fiftyRuleMove)
-
     def clickTile(self, x, y):
         for i in range(self.reversed[0], self.reversed[1], self.reversed[2]):
             k = (i * -1 - 1) if i < 0 else i
