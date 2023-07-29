@@ -29,7 +29,7 @@ Configs can be found in the config.json file. Settings should be self-explanator
 
 ### Controls
 - Below are the controls 
-  - R: Restarts the game (INVESTIGATING AN ISSUE RIGHT NOW DO NOT USE)
+  - R: Restarts the game ~~(INVESTIGATING AN ISSUE RIGHT NOW DO NOT USE)~~ It's fixed now??? I didn't even change anything???
   - Q: Resigns the game
   - S: Starts the game if you are playing the engine when it has the white pieces
 

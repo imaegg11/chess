@@ -610,7 +610,7 @@ class board():
         self.Wtime = None
         self.numberOfFullmoves = 0
         self.isGameRunning = False
-        self.gameResultText = ""
+        self.gameResultText = ""    
 
         self.setUpBoard()
         self.readConfigs()
