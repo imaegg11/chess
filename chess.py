@@ -57,6 +57,7 @@ class board():
         self.reversed = [0, 8, 1]
         self.gameResultText = ""
         self.botThread.start()
+        self.fiftyRuleMove = 0
 
 
     def setUpBoard(self):
@@ -259,6 +260,9 @@ class board():
         if self.checkIfPositionIsDrawn(self.whitePieces if self.currentMover == 1 else self.blackPieces, self.blackPieces if self.currentMover == 1 else self.whitePieces) == self.checkIfPositionIsDrawn(pieces, otherPieces) == True:
             return 5 
 
+        if self.fiftyRuleMove == 100:
+            return 6
+
         return -1
 
     def updateDimensions(self):
@@ -397,6 +401,7 @@ class board():
                         self.gameResultText = "White Won By Timeout"
                     case 5:
                         self.gameResultText = "Draw\nInsufficient Material"
+
                 self.isGameRunning = False
 
     def endOfTurn(self, i , j):
@@ -444,7 +449,11 @@ class board():
                     self.gameResultText = "Draw - Three\nFold Repitition"
                 case 5:
                     self.gameResultText = "Draw\nInsufficient Material"
+                case 6:
+                    self.gameResultText = "Draw\nFifty Rule Move"
             self.isGameRunning = False
+
+        print(self.fiftyRuleMove)
 
     def clickTile(self, x, y):
         for i in range(self.reversed[0], self.reversed[1], self.reversed[2]):
@@ -472,6 +481,10 @@ class board():
                         legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
                         if [k, n] in legalMoves:
                             prevPieceData = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]]
+                            if prevPieceData.piece == 1 or self.board[k][n].color != 0:
+                                self.fiftyRuleMove = 0
+                            else:
+                                self.fiftyRuleMove += 1
                             if prevPieceData.piece == 1:
                                 prevPieceData.enPassant(self.board, self.lastPieceMoved, k, n)
                             elif prevPieceData.piece == 6:
@@ -498,6 +511,12 @@ class board():
                 botMove = self.bot.getAndFormatBestMove()
                 self.currentSelectedPiece = [botMove[0], botMove[1]]
                 prevPieceData = self.board[botMove[0]][botMove[1]]
+
+                if prevPieceData.piece == 1 or self.board[botMove[2]][botMove[3]].color != 0:
+                    self.fiftyRuleMove = 0
+                else:
+                    self.fiftyRuleMove += 1
+
                 if prevPieceData.piece == 1:
                     prevPieceData.enPassant(self.board, self.lastPieceMoved, botMove[2], botMove[3])
                 elif prevPieceData.piece == 6:
@@ -611,6 +630,8 @@ class board():
         self.numberOfFullmoves = 0
         self.isGameRunning = False
         self.gameResultText = ""    
+        self.fiftyRuleMove = 0
+
 
         self.setUpBoard()
         self.readConfigs()
