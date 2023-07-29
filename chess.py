@@ -323,18 +323,19 @@ class board():
     def drawBoard(self):
         self.updateDimensions()
         for i in range(self.reversed[0], self.reversed[1], self.reversed[2]):
-            for j in range(8):
+            k = (i * -1 - 1) if i < 0 else i
+            for j in range(self.reversed[0], self.reversed[1], self.reversed[2]):
+                n = (j * -1 - 1) if j < 0 else j                
                 locationY = self.offSetH + ((i + 8) if i < 0 else i) * self.squareSize
-                k = (i * -1 - 1) if i < 0 else i
 
-                square = pygame.Rect(self.offSetW + j * self.squareSize, locationY, self.squareSize, self.squareSize)
-                pygame.draw.rect(screen, self.boardColor[k][j] , square)
-                if self.secondColorLayer[k][j] != None:
-                    pygame.draw.rect(screen, self.secondColorLayer[k][j] , square)
-                if self.legalMovesLayer[k][j] != None:
-                    pygame.draw.rect(screen, self.legalMovesLayer[k][j] , square)
-                if self.board[k][j].color != 0:
-                    screen.blit(self.board[k][j].returnPiece(), (self.offSetW + j * self.squareSize, locationY))
+                square = pygame.Rect(self.offSetW + n * self.squareSize, locationY, self.squareSize, self.squareSize)
+                pygame.draw.rect(screen, self.boardColor[k][n] , square)
+                if self.secondColorLayer[k][n] != None:
+                    pygame.draw.rect(screen, self.secondColorLayer[k][n] , square)
+                if self.legalMovesLayer[k][n] != None:
+                    pygame.draw.rect(screen, self.legalMovesLayer[k][n] , square)
+                if self.board[k][n                                                                                                                                                                                                              ].color != 0:
+                    screen.blit(self.board[k][n].returnPiece(), (self.offSetW + n * self.squareSize, locationY))
                     #self.board[i][j].returnPiece(self.offSetW + j * self.squareSize, self.offSetH + i * self.squareSize)
         #self.renderLegalMoves()
 
@@ -447,38 +448,39 @@ class board():
 
     def clickTile(self, x, y):
         for i in range(self.reversed[0], self.reversed[1], self.reversed[2]):
-            for j in range(8):
-                k = (i * -1 - 1) if i < 0 else i
-                if x > self.offSetW + j * self.squareSize and y > self.offSetH + ((i + 8) if i < 0 else i) * self.squareSize and x < self.offSetW + (j+1) * self.squareSize and y < self.offSetH + ((i + 8) if i < 0 else i) * self.squareSize + self.squareSize:
-                    if self.currentSelectedPiece == [None, None] and self.board[k][j].color != 0 and self.board[k][j].color == self.currentMover:
-                        self.currentSelectedPiece = [k, j]
+            k = (i * -1 - 1) if i < 0 else i
+            for j in range(self.reversed[0], self.reversed[1], self.reversed[2]):
+                n = (j * -1 - 1) if j < 0 else j
+                if x > self.offSetW + n * self.squareSize and y > self.offSetH + ((i + 8) if i < 0 else i) * self.squareSize and x < self.offSetW + (n+1) * self.squareSize and y < self.offSetH + ((i + 8) if i < 0 else i) * self.squareSize + self.squareSize:
+                    if self.currentSelectedPiece == [None, None] and self.board[k][n].color != 0 and self.board[k][n].color == self.currentMover:
+                        self.currentSelectedPiece = [k, n]
                         legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
                         self.addLegalMoves(legalMoves)
                         if self.timeOfStartOfMove == 0:
                             self.timeOfStartOfMove = int(time.time() * 1000)
                             self.isGameRunning = True
-                    elif [k, j] == self.currentSelectedPiece:
+                    elif [k, n] == self.currentSelectedPiece:
                         legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
                         self.currentSelectedPiece = [None, None]
                         self.resetLegalMoves()
-                    elif self.board[k][j].color == self.currentMover:
+                    elif self.board[k][n].color == self.currentMover:
                         self.resetLegalMoves()
-                        self.currentSelectedPiece = [k, j]
+                        self.currentSelectedPiece = [k, n]
                         legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
                         self.addLegalMoves(legalMoves)
-                    elif self.currentSelectedPiece != [None, None] and self.board[k][j].color != self.currentMover:
+                    elif self.currentSelectedPiece != [None, None] and self.board[k][n].color != self.currentMover:
                         legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
-                        if [k, j] in legalMoves:
+                        if [k, n] in legalMoves:
                             prevPieceData = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]]
                             if prevPieceData.piece == 1:
-                                prevPieceData.enPassant(self.board, self.lastPieceMoved, k, j)
+                                prevPieceData.enPassant(self.board, self.lastPieceMoved, k, n)
                             elif prevPieceData.piece == 6:
-                                prevPieceData.castling(self.board, k, j)
-                            self.board[k][j] = piece(prevPieceData.color, prevPieceData.piece, k, j, self.squareSize, prevPieceData.numberOfMoves + 1)
+                                prevPieceData.castling(self.board, k, n)
+                            self.board[k][n] = piece(prevPieceData.color, prevPieceData.piece, k, n, self.squareSize, prevPieceData.numberOfMoves + 1)
                             self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]] = piece(0, 1, 0, 0, self.squareSize, 0)
-                            if self.board[k][j].piece == 1:
-                                self.board[k][j].promotion()
-                            self.endOfTurn(k, j)
+                            if self.board[k][n].piece == 1:
+                                self.board[k][n].promotion()
+                            self.endOfTurn(k, n)
 
     def recieveAndUpdateBotMove(self):
         while True:
