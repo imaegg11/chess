@@ -17,7 +17,9 @@ I don't know what you want, it's just chess in Python using pygame. A very bad o
   - Pygame: [Link To Pygame Library](https://pypi.org/project/pygame/)
   - Stockfish: [Link To Stockfish Library](https://pypi.org/project/stockfish/)
 - Stockfish Engine [Link To Stockfish Download](https://stockfishchess.org/download/)
-  - Under Windows, download AVX2 
+  - Under Windows, download AVX2
+- Windows
+  - Not sure if it works on other operating systems
 
 ### Setup
 - Find the <>Code button, download the zip file and unzip it on your computer (Main folder should be called chess-main)
