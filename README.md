@@ -3,7 +3,9 @@
 ~~Due to my incredible lack of brain cells and will to do it, this bot will only play the best move. It will play the same moves every time given the same position, including in openings. This means that there are 0 variations in the opening. I could probably solve this by creating a large json file of openings and look at that during the opening. However, I am too lazy so that will come later.~~
 
 
-Nevermind, found a fix to it. It was called using my braincells and not being dumb. 
+Nevermind, found a fix to it. It was called using my braincells and not being dumb.
+
+06/10/2023 Update: It somehow not working again...? I haven't even changed anything??? It was working two months ago...
 
 ## Overview
 
