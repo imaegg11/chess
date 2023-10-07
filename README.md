@@ -6,7 +6,9 @@
 ~~Nevermind, found a fix to it. It was called using my braincells and not being dumb.~~
 
 
-06/10/2023 Update: It somehow not working again...? I haven't even changed anything??? It was working two months ago...
+~~06/10/2023 Update: It somehow not working again...? I haven't even changed anything??? It was working two months ago...~~
+
+I fixed it...?
 
 ## Overview
 

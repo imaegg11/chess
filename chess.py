@@ -598,8 +598,7 @@ class board():
         # Probably won't break anything... right...?
 
         self.bot.stockfish.update_engine_parameters({
-            "UCI_Elo": self.botELO,
-            "Skill Level": self.botELO//100
+            "UCI_Elo": self.botELO
         })
 
     def reset(self):
