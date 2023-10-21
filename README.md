@@ -39,7 +39,7 @@ Configs can be found in the config.json file. Settings should be self-explanator
   - S: Starts the game if you are playing the engine when it has the white pieces
 
 ### Problems
-Read the error message. If it is in red, read it and fix the issue. If it's not, cry about it because there's a high likely chance I am not fixing the issue. 
+Read the error message. If it is in red, read it and fix the issue. If it's not, create an issue or something. I'm probably not going to fix it though. 
 
 ## If You Want To Fix This Program
 If you want to fix this program, fork the repository and die while reading my code. It's is horrendous and it is probably the worst code you will ever read. I forgot how half the code works. Also enjoy the comments while you are at it. 
