@@ -109,16 +109,15 @@ class piece():
 
         return [legalMoves, kingInPath]
 
-    def promotion(self):
+    def promotion(self, screen):
         if int((self.color + 1) * 3.5) == self.x:
-            print("what to promote to????\n2 for knight\n3 for bishop\n4 for rook\n5 for queen")
-            promotion = int(input())
-            if promotion > 5 or promotion < 2:
-                self.promotion()
-            else:
-                self.piece = promotion
-                self.updatePieceImg()
-                #self.pieceImg = pygame.transform.scale(pygame.image.load(("white" if self.color == -1 else "black") + self.lookUpTable[self.piece] + ".svg").convert_alpha(), (self.size, self.size))
+
+            copyOfBoard = [[None for i in range(8)] for i in range(8)]
+
+            # Okay I am too lazy, it just auto queens            
+
+            self.piece = 5
+
 
     def enPassant(self, board, lastPieceMoved, x, y):
         if self.y != 7 and x == self.x + self.color and self.y+1 == y and board[self.x][self.y+1].x == int((self.color + 2)*0.5 + 2.5) and board[self.x][self.y+1].color == (self.color * -1) and [self.x, self.y+1] == lastPieceMoved and board[self.x][self.y+1].piece == 1 and board[self.x][self.y+1].numberOfMoves == 1:

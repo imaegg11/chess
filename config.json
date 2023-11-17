@@ -1,7 +1,14 @@
 {
-    "BotActive": true, 
+    "BotActive": false,
+    "AutoFlip": false, 
     "BotColor": 1,
     "StockfishELO": 3000, 
+    "Comment0": "You can also remove these comments if you want",
+    "Comment1": "The time is all in milliseconds (for some reason)",
     "BlackTime": 180000,
-    "WhiteTime": 180000
+    "WhiteTime": 180000,
+    "BlackTimeIncrement": 10000,
+    "WhiteTimeIncrement": 10000, 
+    "Comment2": "Board only accepts the part of the fen string to contains the positions of the board (not the rest of the information) and the last section is for who moves first (-1 for white and 1 for black)",
+    "Board": "k7/7P/7r/7R/8/8/8/K7/-1"
 }

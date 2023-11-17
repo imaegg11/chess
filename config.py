@@ -2,37 +2,48 @@ class config:
     def __init__(self, configSettings):
         self.configSettings = configSettings
         # Yes, I am aware that I could just use the keys of properType to check... 
-        self.properConfigHeaders = ['BotActive', 'BotColor', 'BlackTime', 'WhiteTime', 'StockfishELO'] 
+        self.properConfigHeaders = ['BotActive', 'BotColor', 'BlackTime', 'WhiteTime', 'StockfishELO', 'AutoFlip', 'BlackTimeIncrement', 'WhiteTimeIncrement', 'Board'] 
         self.properType = {'BotActive': True, 
+                            'AutoFlip': True,
                             'BotColor' : -1,
                             'BlackTime' : 1,
                             'WhiteTime': 1,
-                            'StockfishELO': 1
+                            'StockfishELO': 1,
+                            'BlackTimeIncrement': 0,
+                            'WhiteTimeIncrement': 0, 
+                            'Board': "I have no clue on how any of my code works ngl"
                         }
         self.properValue = {'BotColor' : [-1, 1],
                             'BlackTime' : 1,
                             'WhiteTime': 1,
-                            'StockfishELO': 1
+                            'StockfishELO': 1,
+                            'BlackTimeIncrement': 0,
+                            'WhiteTimeIncrement': 0,
+                            'Board': "I have no clue on how any of my code works ngl"
                         }
         
 
     def checkConfig(self):
-        if sorted(list(self.configSettings.keys())) != sorted(self.properConfigHeaders):
+        if sorted(list(self.configSettings.keys())) != sorted(self.properConfigHeaders + [i for i in list(self.configSettings.keys()) if i[:7] == "Comment"]):
             self.throwErrorMesssage("Error: Missing config setting in config file")
             return False
         else:
             for i, e in enumerate(self.configSettings):
+                if e[:7] == "Comment":
+                    continue
                 if isinstance(self.configSettings[e], type(self.properType[e])) == False:
                     self.throwErrorMesssage(f'TypeError: Config setting of {e} has invalid type\nExpected {type(self.properType[e])}\nRecieved {type(self.configSettings[e])}')
                     return False
             for i, e in enumerate(self.properValue):
+                if e[:7] == "Comment":
+                    continue
                 content = self.properValue[e]
                 if isinstance(content, type([])):
                     if self.configSettings[e] not in content:
                         self.throwErrorMesssage(f'ValueError: Config setting of {e} has improper value\nExpected {" or ".join([str(j) for j in content])}\nRecieved {self.configSettings[e]}')
                         return False
                 elif self.configSettings[e] < content:
-                    self.throwErrorMesssage(f'ValueError: Config setting of {e} has improper value\nExpected value greater than {content}\nRecieved {self.configSettings[e]}')
+                    self.throwErrorMesssage(f'ValueError: Config setting of {e} has improper value\nExpected value greater than or equal to {content}\nRecieved {self.configSettings[e]}')
                     return False
         return True # Wow, somehow the end user was smart enough to figure out the config file!
     

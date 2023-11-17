@@ -22,9 +22,9 @@ pygame.display.set_icon(iconImg)
 
 class board():
 
-    def __init__(self, boardSetup):
+    def __init__(self):
         self.dimensions = pygame.display.get_surface().get_size()
-        self.boardSetup = boardSetup
+        self.boardSetup = None
         self.board = [[None for i in range(8)] for i in range(8)]
         self.offSetW = (self.dimensions[0] - (self.dimensions[1] - 100)) / 2
         self.offSetH = 50
@@ -38,7 +38,7 @@ class board():
         self.legalMovesLayer = [[None for i in range(8)] for i in range(8)]
         self.whitePieces = []
         self.blackPieces = []
-        self.pastMoves = {boardSetup: 2}
+        self.pastMoves = {}
         self.timeOfStartOfMove = 0
         self.prevBtime = None
         self.prevWtime = None
@@ -58,6 +58,9 @@ class board():
         self.gameResultText = ""
         self.botThread.start()
         self.fiftyRuleMove = 0
+        self.autoFlip = True
+        self.blackTimeIncrement = 0
+        self.whiteTimeIncrement = 0
 
 
     def setUpBoard(self):
@@ -78,7 +81,7 @@ class board():
             'k': piece(1, 6, 0, 0, self.squareSize, 0)
         }
 
-        ranks = self.boardSetup.split("/")
+        ranks = self.boardSetup.split("/")[:-1]
         for i in range(len(ranks)):
             temp = []
             for j in range(len(ranks[i])):
@@ -88,13 +91,24 @@ class board():
                     temp.append(ranks[i][j])
             ranks[i] = "".join(temp)
 
-        for i in range(len(ranks)):
-            for j in range(len(ranks[i])):
-                self.board[i][j] = copy.copy(pieceLookUpTable[ranks[i][j]])
-                self.board[i][j].x = i
-                self.board[i][j].y = j
+        try:
+            for i in range(len(ranks)):
+                for j in range(len(ranks[i])):
+                    self.board[i][j] = copy.copy(pieceLookUpTable[ranks[i][j]])
+                    self.board[i][j].x = i
+                    self.board[i][j].y = j
+        except:
+            config({}).throwErrorMesssage(f"Board in config.json is invalid")
+            return
 
         self.keepTrack()
+        self.currentMover = int(self.boardSetup.split("/")[-1])
+        if self.currentMover == 1:
+            self.reversed = [-8, 0, 1]
+        else:
+            self.reversed = [0, 8, 1]
+
+        self.pastMoves = {self.boardSetup: 1}
 
     '''
 
@@ -137,6 +151,7 @@ class board():
 
         emptySquares = 0
         fenString = ""
+
         blackKing = self.board[0][4]
         whiteKing = self.board[7][4]
         rWhiteRook = self.board[7][0]
@@ -452,6 +467,20 @@ class board():
                 case 6:
                     self.gameResultText = "Draw\nFifty Rule Move"
             self.isGameRunning = False
+            return
+        
+        if self.currentMover == -1:
+            self.Btime += self.blackTimeIncrement
+            self.prevBtime = self.Btime
+        else:
+            self.Wtime += self.whiteTimeIncrement
+            self.prevWtime = self.Wtime
+
+        if not self.botActive and self.autoFlip:
+            if self.currentMover == 1:
+                self.reversed = [-8, 0, 1]
+            else:
+                self.reversed = [0, 8, 1]
 
     def clickTile(self, x, y):
         for i in range(self.reversed[0], self.reversed[1], self.reversed[2]):
@@ -490,7 +519,7 @@ class board():
                             self.board[k][n] = piece(prevPieceData.color, prevPieceData.piece, k, n, self.squareSize, prevPieceData.numberOfMoves + 1)
                             self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]] = piece(0, 1, 0, 0, self.squareSize, 0)
                             if self.board[k][n].piece == 1:
-                                self.board[k][n].promotion()
+                                self.board[k][n].promotion(screen)
                             self.endOfTurn(k, n)
 
     def recieveAndUpdateBotMove(self):
@@ -589,7 +618,7 @@ class board():
             sys.exit()
     
     def convertConfigParams(self, configs):
-        self.botActive, self.botColor, self.prevBtime, self.prevWtime, self.botELO = configs
+        self.botActive, self.botColor, self.prevBtime, self.prevWtime, self.botELO, self.autoFlip, self.blackTimeIncrement, self.whiteTimeIncrement, self.boardSetup = configs
         self.Btime, self.Wtime = self.prevBtime, self.prevWtime
         if self.botActive and self.botColor == -1:
             self.reversed = [-8, 0, 1]
@@ -603,8 +632,11 @@ class board():
 
     def reset(self):
 
+        # Makes sure the entire program doesn't die
+        while (self.botActive and self.currentMover == self.botColor):
+            pass
+        
         self.botPaused = True
-
         self.dimensions = pygame.display.get_surface().get_size()
         self.board = [[None for i in range(8)] for i in range(8)]
         self.offSetW = (self.dimensions[0] - (self.dimensions[1] - 100)) / 2
@@ -629,68 +661,85 @@ class board():
         self.gameResultText = ""    
         self.fiftyRuleMove = 0
 
-
-        self.setUpBoard()
         self.readConfigs()
+        self.setUpBoard()
 
     def resign(self):
+
+        copyOfBoard = [[None for i in range(8)] for i in range(8)]
+        copyOfsecondColorLayer = copy.copy(self.secondColorLayer)
+
+        for i in range(8):
+            for j in range(8):
+                copyOfBoard[i][j] = copy.copy(self.board[i][j])
+
+        while (self.botActive and self.currentMover == self.botColor):
+            pass 
+
+        self.secondColorLayer = copyOfsecondColorLayer
+        self.legalMovesLayer = [[None for i in range(8)] for i in range(8)]
+        self.board = copyOfBoard
+
+        self.drawBoard()
+
+        self.pause()
         self.isGameRunning = False
+        
         if self.botActive:
             self.gameResultText = "Black Wins By\nResignation" if self.botColor == 1 else "White Wins By\nResignation"
         else:
             self.gameResultText = "Black Wins By\nResignation" if self.currentMover == -1 else "White Wins By\nResignation"
 run = True
 
-board = board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
-# Test Positions
-#board = board("7k/44/8/3P4/8/5K2/3p4/8")
-#board = board("2k1r2r/ppp2ppR/8/8/8/8/8/4K3")
-#board = board("k7/R3b3/8/8/R7/8/8/R3K2R")
-#board = board("8/8/k7/8/8/3rB3/2K5/8")
+board = board()
 
-board.setUpBoard()
 board.readConfigs()
+board.setUpBoard()
 
 
+try:
+    while run:
 
-while run:
+        screen.fill((31, 31, 31))
 
-    screen.fill((31, 31, 31))
+        board.drawBoard()
+        board.timer()
 
-    board.drawBoard()
-    board.timer()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                board.endThread()
+                #pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                #x, y = pygame.mouse.get_pos()
+                #board.clickTile(x, y, 0)
+                # TODO: IMPLEMENT DRAGGING LATER
+                pass
+            elif event.type == pygame.MOUSEBUTTONUP:
+                x, y = pygame.mouse.get_pos()
+                board.manageTurn(x, y, True)
+            elif event.type == pygame.VIDEORESIZE:
+                width, height = event.w, event.h
+                if width/height < 1.8:
+                    width = height * 1.8
+                screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == 120:
+                    board.reversed = [-8, 0, 1] if board.reversed != [-8, 0, 1] else [0, 8, 1]
+                elif event.key == 114:
+                    board.reset()
+                elif event.key == 115 and board.botActive and board.timeOfStartOfMove == 0 and board.botColor == -1:
+                    board.isGameRunning = True
+                elif event.key == 113 and board.isGameRunning:
+                    board.resign()
+            board.manageTurn(-1, -1, False)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            board.endThread()
-            #pygame.quit()
-            sys.exit()
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            #x, y = pygame.mouse.get_pos()
-            #board.clickTile(x, y, 0)
-            # TODO: IMPLEMENT DRAGGING LATER
-            pass
-        elif event.type == pygame.MOUSEBUTTONUP:
-            x, y = pygame.mouse.get_pos()
-            board.manageTurn(x, y, True)
-        elif event.type == pygame.VIDEORESIZE:
-            width, height = event.w, event.h
-            if width/height < 1.8:
-                width = height * 1.8
-            screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
-        elif event.type == pygame.KEYDOWN:
-            if event.key == 120:
-                board.reversed = [-8, 0, 1] if board.reversed != [-8, 0, 1] else [0, 8, 1]
-            elif event.key == 114:
-                board.reset()
-            elif event.key == 115 and board.botActive and board.timeOfStartOfMove == 0 and board.botColor == -1:
-                board.isGameRunning = True
-            elif event.key == 113 and board.isGameRunning:
-                board.resign()
-        board.manageTurn(-1, -1, False)
-
-    board.drawTimeControls()
+        board.drawTimeControls()
 
 
-    pygame.display.update()
-    #run = False
+        pygame.display.update()
+
+except Exception as e:
+    print(e)
+    board.endThread()
+    sys.exit()
