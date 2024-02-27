@@ -718,7 +718,7 @@ class board():
         
         self.currentSelectedPiece = [None, None]
         self.resetLegalMoves()
-
+        print(self.pastIndex, type) 
         match type:
             case 1:
                 self.pastIndex = min(self.pastIndex+1, len(self.pastMoves)-1)
@@ -764,6 +764,7 @@ try:
                     width = height * 1.8
                 screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
             elif event.type == pygame.KEYDOWN:
+                print(event.key)
                 if event.key == 120:
                     board.reversed = [-8, 0, 1] if board.reversed != [-8, 0, 1] else [0, 8, 1]
                 elif event.key == 114:
@@ -772,7 +773,7 @@ try:
                     board.isGameRunning = True
                 elif event.key == 113 and board.isGameRunning:
                     board.resign()
-                elif event.key >= 1073741903: # Right
+                elif event.key == 1073741903: # Right
                     board.viewOtherPosition(1)
                 elif event.key == 1073741904: # Left
                     board.viewOtherPosition(2)
