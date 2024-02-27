@@ -25,7 +25,7 @@ I don't know what you want, it's just chess in Python using pygame.
 - Stockfish Engine [Link To Stockfish Download](https://stockfishchess.org/download/)
   - Under Windows, download AVX2
 - Windows
-  - Not sure if it works on other operating systems
+  - Nope, definitely needs Windows
 
 ### Setup
 - Find the <>Code button, download the zip file and unzip it on your computer (Main folder should be called chess-main)
@@ -37,9 +37,12 @@ Configs can be found in the config.json file. Settings should be self-explanator
 
 ### Controls
 - Below are the controls 
+  - Right/Left Click: Interacting with the board 
   - R: Restarts the game
   - Q: Resigns the game
   - S: Starts the game if you are playing the engine when it has the white pieces
+  - Left/Right Arrow Key: Goes back and forth between previous moves
+  - Up/Down Arrow Key: Goes to current position/starting position
 
 ### Problems
 Read the error message. If it is in red, read it and fix the issue. If it's not, create an issue or something. I'm probably not going to fix it though. 

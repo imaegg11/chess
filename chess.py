@@ -38,7 +38,10 @@ class board():
         self.legalMovesLayer = [[None for i in range(8)] for i in range(8)]
         self.whitePieces = []
         self.blackPieces = []
-        self.pastMoves = {}
+        self.pastMovesDict = {}
+        self.pastMoves = []
+        self.pastColors = []
+        self.pastIndex = 0
         self.timeOfStartOfMove = 0
         self.prevBtime = None
         self.prevWtime = None
@@ -60,8 +63,7 @@ class board():
         self.fiftyRuleMove = 0
         self.autoFlip = True
         self.blackTimeIncrement = 0
-        self.whiteTimeIncrement = 0
-
+        self.whiteTimeIncrement = 0       
 
     def setUpBoard(self):
 
@@ -108,7 +110,19 @@ class board():
         else:
             self.reversed = [0, 8, 1]
 
-        self.pastMoves = {self.boardSetup: 1}
+        self.pastMovesDict = {self.boardSetup: 1}
+        self.pastMoves = [self.copyBoard(self.board)]
+        self.pastColors = [[[None for i in range(8)] for i in range(8)]]
+
+    @staticmethod 
+    def copyBoard(board):
+        copyOfBoard = [[None for i in range(8)] for i in range(8)]
+
+        for i in range(8):
+                for j in range(8):
+                    copyOfBoard[i][j] = copy.copy(board[i][j])
+
+        return copyOfBoard
 
     '''
 
@@ -245,12 +259,15 @@ class board():
             return 4
 
         fenString = self.toFEN().split(" ")[0]
-        if fenString not in self.pastMoves:
-            self.pastMoves[fenString] = 1
+        if fenString not in self.pastMovesDict:
+            self.pastMovesDict[fenString] = 1
         else:
-            self.pastMoves[fenString] += 1
+            self.pastMovesDict[fenString] += 1
 
-        if self.pastMoves[fenString] == 3:
+        self.pastMoves += [self.copyBoard(self.board)]
+        self.pastIndex = len(self.pastMoves) - 1 
+
+        if self.pastMovesDict[fenString] == 3:
             return 2
 
         for i in pieces:
@@ -341,16 +358,18 @@ class board():
 
     def drawBoard(self):
         self.updateDimensions()
+        self.board = self.copyBoard(self.pastMoves[self.pastIndex])
         for i in range(self.reversed[0], self.reversed[1], self.reversed[2]):
             k = (i * -1 - 1) if i < 0 else i
             for j in range(self.reversed[0], self.reversed[1], self.reversed[2]):
                 n = (j * -1 - 1) if j < 0 else j                
                 locationY = self.offSetH + ((i + 8) if i < 0 else i) * self.squareSize
-
                 square = pygame.Rect(self.offSetW + n * self.squareSize, locationY, self.squareSize, self.squareSize)
                 pygame.draw.rect(screen, self.boardColor[k][n] , square)
-                if self.secondColorLayer[k][n] != None:
-                    pygame.draw.rect(screen, self.secondColorLayer[k][n] , square)
+                if self.currentSelectedPiece == [k, n]:
+                    pygame.draw.rect(screen, (204, 77, 69) if k % 2 != n % 2 else (242, 120, 114), square)
+                if self.pastColors[self.pastIndex][k][n] != None:
+                    pygame.draw.rect(screen, self.pastColors[self.pastIndex][k][n] , square)
                 if self.legalMovesLayer[k][n] != None:
                     pygame.draw.rect(screen, self.legalMovesLayer[k][n] , square)
                 if self.board[k][n                                                                                                                                                                                                              ].color != 0:
@@ -424,6 +443,7 @@ class board():
         self.resetSecondLayerColours()
         self.secondColorLayer[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]] = (191, 154, 94) if self.currentSelectedPiece[0] % 2 != self.currentSelectedPiece[1] % 2 else (211, 199, 121)
         self.secondColorLayer[i][j] = (191, 154, 94) if i % 2 != j % 2 else (211, 199, 121)
+        self.pastColors += [self.secondColorLayer.copy()]
 
         if self.currentMover == 1:
             self.numberOfFullmoves += 1
@@ -496,7 +516,7 @@ class board():
                             self.timeOfStartOfMove = int(time.time() * 1000)
                             self.isGameRunning = True
                     elif [k, n] == self.currentSelectedPiece:
-                        legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
+                        # legalMoves = self.board[self.currentSelectedPiece[0]][self.currentSelectedPiece[1]].findLegalMoves(self.board, self.lastPieceMoved)[0]
                         self.currentSelectedPiece = [None, None]
                         self.resetLegalMoves()
                     elif self.board[k][n].color == self.currentMover:
@@ -600,6 +620,7 @@ class board():
                     if self.botPaused:
                         self.resume()
             elif clicked:
+                self.pastIndex = len(self.pastMoves)-1 
                 self.clickTile(x, y)
     
     def readConfigs(self):
@@ -650,7 +671,10 @@ class board():
         self.legalMovesLayer = [[None for i in range(8)] for i in range(8)]
         self.whitePieces = []
         self.blackPieces = []
-        self.pastMoves = {self.boardSetup: 1}
+        self.pastMovesDict = {self.boardSetup: 1}
+        self.pastMoves = []
+        self.pastColors = []
+        self.pastIndex = 0
         self.timeOfStartOfMove = 0
         self.prevBtime = None
         self.prevWtime = None
@@ -689,6 +713,22 @@ class board():
             self.gameResultText = "Black Wins By\nResignation" if self.botColor == 1 else "White Wins By\nResignation"
         else:
             self.gameResultText = "Black Wins By\nResignation" if self.currentMover == -1 else "White Wins By\nResignation"
+
+    def viewOtherPosition(self, type):
+        
+        self.currentSelectedPiece = [None, None]
+        self.resetLegalMoves()
+
+        match type:
+            case 1:
+                self.pastIndex = min(self.pastIndex+1, len(self.pastMoves)-1)
+            case 2:
+                self.pastIndex = max(self.pastIndex-1, 0)
+            case 3:
+                self.pastIndex = len(self.pastMoves)-1 
+            case 4:
+                self.pastIndex = 0
+
 run = True
 
 board = board()
@@ -732,6 +772,14 @@ try:
                     board.isGameRunning = True
                 elif event.key == 113 and board.isGameRunning:
                     board.resign()
+                elif event.key >= 1073741903: # Right
+                    board.viewOtherPosition(1)
+                elif event.key == 1073741904: # Left
+                    board.viewOtherPosition(2)
+                elif event.key == 1073741906: # Up
+                    board.viewOtherPosition(3)
+                elif event.key == 1073741905: # Down
+                    board.viewOtherPosition(4)
             board.manageTurn(-1, -1, False)
 
         board.drawTimeControls()

@@ -3,6 +3,7 @@ class config:
         self.configSettings = configSettings
         # Yes, I am aware that I could just use the keys of properType to check... 
         self.properConfigHeaders = ['BotActive', 'BotColor', 'BlackTime', 'WhiteTime', 'StockfishELO', 'AutoFlip', 'BlackTimeIncrement', 'WhiteTimeIncrement', 'Board'] 
+        self.properConfigHeadersSet = set(self.properConfigHeaders)
         self.properType = {'BotActive': True, 
                             'AutoFlip': True,
                             'BotColor' : -1,
@@ -24,18 +25,21 @@ class config:
         
 
     def checkConfig(self):
-        if sorted(list(self.configSettings.keys())) != sorted(self.properConfigHeaders + [i for i in list(self.configSettings.keys()) if i[:7] == "Comment"]):
-            self.throwErrorMesssage("Error: Missing config setting in config file")
+        if sorted([i for i in list(self.configSettings.keys()) if i in self.properConfigHeadersSet]) != sorted(self.properConfigHeaders):
+            missingConfigs = [i for i in self.properConfigHeaders if i not in self.configSettings.keys()]
+            self.throwErrorMesssage("Error: Missing config" + ("s" if len(missingConfigs) > 1 else "") + " - Could not find following config" + ("s:" if len(missingConfigs) > 1 else ":"))
+            for i in missingConfigs:
+                self.throwErrorMesssage("       " + i)
             return False
         else:
             for i, e in enumerate(self.configSettings):
-                if e[:7] == "Comment":
+                if e not in self.properConfigHeadersSet:
                     continue
                 if isinstance(self.configSettings[e], type(self.properType[e])) == False:
                     self.throwErrorMesssage(f'TypeError: Config setting of {e} has invalid type\nExpected {type(self.properType[e])}\nRecieved {type(self.configSettings[e])}')
                     return False
             for i, e in enumerate(self.properValue):
-                if e[:7] == "Comment":
+                if e not in self.properConfigHeadersSet:
                     continue
                 content = self.properValue[e]
                 if isinstance(content, type([])):

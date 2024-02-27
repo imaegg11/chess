@@ -1,4 +1,5 @@
-import stockfish, os, requests
+import stockfish, os
+# import requests
 
 class engine:
 
@@ -45,8 +46,6 @@ class engine:
     Decided I didn't want to anymore.
     Left here cause I am lazy.
 
-    '''
-
     def getAndFormatBestMoveWeb(self):
         lookUpTable = {
             'p': 1,
@@ -65,3 +64,5 @@ class engine:
         bestMove[1], bestMove[3] = bestMove[1] * -1 + 8, bestMove[3] * -1 + 8
         bestMove[0], bestMove[1], bestMove[2], bestMove[3] = bestMove[1], bestMove[0], bestMove[3], bestMove[2]
         return bestMove
+
+    '''
