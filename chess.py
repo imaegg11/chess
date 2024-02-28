@@ -481,7 +481,7 @@ class board():
                 case 1:
                     self.gameResultText = "Stalemate"
                 case 2:
-                    self.gameResultText = "Draw - Three\nFold Repitition"
+                    self.gameResultText = "Draw - Three\nFold Repetition"
                 case 5:
                     self.gameResultText = "Draw\nInsufficient Material"
                 case 6:
@@ -552,8 +552,6 @@ class board():
                 if self.exit:
                     break
 
-                start = time.time()
-
                 self.bot.updateStockFishPosition(self.toFEN())
                 botMove = self.bot.getAndFormatBestMove()
                 self.currentSelectedPiece = [botMove[0], botMove[1]]
@@ -604,8 +602,8 @@ class board():
             self.botLock.notify()
 
     def endThread(self):
-        board.exit = True
-        board.resume()
+        self.exit = True
+        self.resume()
 
     def manageTurn(self, x, y, clicked):
         if self.isGameRunning or self.timeOfStartOfMove == 0:
