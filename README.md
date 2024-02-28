@@ -30,6 +30,10 @@ I don't know what you want, it's just chess in Python using pygame.
 ### Setup
 - Find the <>Code button, download the zip file and unzip it on your computer (Main folder should be called chess-main)
 - Unzip the Stockfish Engine zip and place it in the chess-main folder (Also the folder that contains all of the code from the github)
+- In your terminal, run the following line of code to install all the libraries needed for the program.
+  ```
+  pip install -r requirement PATH_TO_REQUIREMENTS.TXT
+  ```
 - Run chess.py to run the program 
 
 ### Configs 
