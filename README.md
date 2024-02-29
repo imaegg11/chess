@@ -34,6 +34,7 @@ I don't know what you want, it's just chess in Python using pygame.
   ```
   pip install -r requirement PATH_TO_REQUIREMENTS.TXT
   ```
+  There will be a requirements.txt within the unzipped file of the code
 - Run chess.py to run the program 
 
 ### Configs 
