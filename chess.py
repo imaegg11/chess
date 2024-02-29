@@ -303,9 +303,9 @@ class board():
         self.offSetH = 50
         self.boardSize = self.dimensions[1] - 100
         self.squareSize = int(self.boardSize / 8)
-        for i in self.board:
-            for j in i:
-                j.size = self.squareSize
+        # for i in range(8):
+        #     for j in range(8):
+        #         self.board[i][j].size = self.squareSize
 
 
     def drawTimeControls(self):
@@ -373,6 +373,7 @@ class board():
                 if self.legalMovesLayer[k][n] != None:
                     pygame.draw.rect(screen, self.legalMovesLayer[k][n] , square)
                 if self.board[k][n                                                                                                                                                                                                              ].color != 0:
+                    self.board[k][n].size = self.squareSize # I don't understand why updateDimensions isn't doing its job... it's very confusing
                     screen.blit(self.board[k][n].returnPiece(), (self.offSetW + n * self.squareSize, locationY))
                     #self.board[i][j].returnPiece(self.offSetW + j * self.squareSize, self.offSetH + i * self.squareSize)
         #self.renderLegalMoves()
@@ -572,7 +573,7 @@ class board():
 
                 if self.board[botMove[2]][botMove[3]].piece == 1 and len(botMove) == 5:
                     self.board[botMove[2]][botMove[3]].piece = botMove[-1]
-                    self.board[botMove[2]][botMove[3]].updatePieceImg()
+                    # self.board[botMove[2]][botMove[3]].updatePieceImg()
 
 
 
