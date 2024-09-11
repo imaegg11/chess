@@ -1,8 +1,8 @@
 {
-    "BotActive": false,
+    "BotActive": true,
     "AutoFlip": true, 
     "BotColor": 1,
-    "StockfishELO": 3000, 
+    "StockfishLevel": 20, 
     "Comment0": "You can also remove these comments if you want",
     "Comment1": "The time is all in milliseconds (for some reason)",
     "BlackTime": 180000,

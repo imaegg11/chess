@@ -23,6 +23,11 @@ class piece():
         self.recursionStopper = True
         self.enPassantTry = False
 
+    def __str__(self):
+        return_str = f"color: {self.color}\npiece: {self.lookUpTable[self.piece]}\nx: {self.x}\ny: {self.y}\npieceImg: {self.pieceImg}\nmoves: {self.numberOfMoves}"
+
+        return return_str
+
     def updatePieceImg(self):
         self.pieceImg = self.load_and_scale_svg(self.path + ("white" if self.color == -1 else "black") + self.lookUpTable[self.piece] + ".svg", (self.size/45))
 
@@ -251,12 +256,14 @@ class piece():
         if self.numberOfMoves == 0 and self.y == 4:
             leftRook = board[self.x][self.y+3]
             rightRook = board[self.x][self.y-4]
+
             copyOfLegalMoves = copy.copy(legalMoves)
             if leftRook.piece == 4 and leftRook.color == self.color and leftRook.numberOfMoves == 0 and all([board[self.x][self.y+i].color == 0 for i in range(1, 3)]):
                 results = self.checkValidMove(self.x, self.y+1, legalMoves, board)
                 if results[0] != copyOfLegalMoves:
                     results = self.checkValidMove(self.x, self.y+2, legalMoves, board)
                     legalMoves = results[0]
+            copyOfLegalMoves = copy.copy(legalMoves)
             if rightRook.piece == 4 and rightRook.color == self.color and rightRook.numberOfMoves == 0 and all([board[self.x][self.y-i].color == 0 for i in range(1, 4)]):
                 results = self.checkValidMove(self.x, self.y-1, legalMoves, board)
                 if results[0] != copyOfLegalMoves:

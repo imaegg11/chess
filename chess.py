@@ -1,5 +1,4 @@
 import pygame, sys, time, threading, copy, json, os
-from timeit import timeit
 from pygame.locals import *
 from engine import engine 
 from piece import piece
@@ -7,7 +6,7 @@ from config import config
 
 '''
 
-Holy crap does all of the following code suck. I will refactor the code later.
+I will refactor this code later.
 
 '''
 
@@ -15,7 +14,7 @@ pygame.init()
 
 assetsPath = os.path.dirname(os.path.abspath(__file__)) + "\\assets\\"
 path = os.path.dirname(os.path.abspath(__file__)) + "\\"
-screen = pygame.display.set_mode((900, 500), pygame.RESIZABLE)
+screen = pygame.display.set_mode((1000, 600), pygame.RESIZABLE)
 pygame.display.set_caption('Chess')
 iconImg = pygame.image.load(assetsPath + "blackRook.png")
 pygame.display.set_icon(iconImg)
@@ -24,6 +23,7 @@ class board():
 
     def __init__(self):
         self.dimensions = pygame.display.get_surface().get_size()
+        self.box = None
         self.boardSetup = None
         self.board = [[None for i in range(8)] for i in range(8)]
         self.offSetW = (self.dimensions[0] - (self.dimensions[1] - 100)) / 2
@@ -56,7 +56,8 @@ class board():
         self.exit = False
         self.botActive = None
         self.botColor = None
-        self.botELO = None
+        self.botLevel = None
+        self.botMoves = None
         self.reversed = [0, 8, 1]
         self.gameResultText = ""
         self.botThread.start()
@@ -299,48 +300,75 @@ class board():
 
     def updateDimensions(self):
         self.dimensions = pygame.display.get_surface().get_size()
-        self.offSetW = (self.dimensions[0] - (self.dimensions[1] - 100)) / 2
-        self.offSetH = 50
-        self.boardSize = self.dimensions[1] - 100
-        self.squareSize = int(self.boardSize / 8)
-        # for i in range(8):
-        #     for j in range(8):
-        #         self.board[i][j].size = self.squareSize
+        w, h = self.dimensions
+        r = w/h 
+        wx, hx, rx = None, None, None
+        if (r > 1.8):
+            rx = (h * 0.9) / 500 
+            wx, hx = 900 * rx, 500 * rx
+        elif (r <= 1.8):
+            rx = (w * 0.9) / 900 
+            wx, hx = 900 * rx, 500 * rx
 
+
+        self.boardSize = hx
+        self.squareSize = int(self.boardSize / 8)
+        self.offSetH = (h - self.squareSize * 8) / 2
+        self.offSetW = (w - self.squareSize * 8) / 2
+        self.box = [wx, hx]
 
     def drawTimeControls(self):
         reversed = (self.reversed != [0, 8, 1])
-        myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.65))
+        w, h = self.dimensions
+        wx, hx = self.box
+        myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.45))
         wTime = myfont.render(self.msToString(self.Btime if reversed else self.Wtime), True, (255, 255, 255))
         bTime = myfont.render(self.msToString(self.Wtime if reversed else self.Btime), True, (255, 255, 255))
 
         wTimeCenter = wTime.get_rect()
         bTimeCenter = bTime.get_rect()
 
-        offSet = (self.dimensions[0] - self.boardSize)/2 + self.boardSize + (self.dimensions[0] - self.boardSize)/4
+        xBoxOff = (w - wx) / 2
+        yBoxOff = (h - hx) / 2
+        x = xBoxOff + (wx - self.squareSize * 8) * 3 / 4 + self.squareSize * 8
+        yCenter = yBoxOff + hx / 2
 
-        wTimeCenter.center = (offSet, self.dimensions[1]/2 + self.dimensions[1]/4)
-        bTimeCenter.center = (offSet, self.dimensions[1]/2 - self.dimensions[1]/4)
+        wTimeCenter.center = (x, yCenter + hx / 4)
+        bTimeCenter.center = (x, yCenter - hx / 4)
 
         screen.blit(wTime, wTimeCenter)
         screen.blit(bTime, bTimeCenter)
-        self.drawStockfishELO()
+        self.drawStockfishLevel()
         self.drawGameResult()
 
-    def drawStockfishELO(self):
-        myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.5))
-        stockfishText = myfont.render(f"Stockfish ELO: {self.botELO if self.botActive else 'N/A'}", True, (255, 255, 255))
-        stockfishCenter = stockfishText.get_rect()
-        stockfishCenter.center = ((self.dimensions[0] - self.boardSize)/4, self.dimensions[1]/2)
-        screen.blit(stockfishText, stockfishCenter)
+
+
+    def drawStockfishLevel(self):
+        w, h = self.dimensions
+        wx, hx = self.box
+        xBoxOff = (w - wx) / 2
+        yBoxOff = (h - hx) / 2
+        myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.4))
+        stockfishText = myfont.render("Stockfish Level", True, (255, 255, 255))
+        stockfishTextCenter = stockfishText.get_rect()
+        stockfishTextCenter.center = (xBoxOff + (wx - self.squareSize * 8) / 4, yBoxOff + hx / 2 - stockfishText.get_height() / 2)
+        screen.blit(stockfishText, stockfishTextCenter)
+        levelText = myfont.render(str(self.botLevel) if self.botActive else 'N/A', True, (255, 255, 255))
+        levelTextCenter = levelText.get_rect()
+        levelTextCenter.center = (xBoxOff + (wx - self.squareSize * 8) / 4, yBoxOff + hx / 2 + stockfishText.get_height() / 2)
+        screen.blit(levelText, levelTextCenter)
 
 
     def drawGameResult(self):
-        myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.4))
+        w, h = self.dimensions
+        wx, hx = self.box
+        xBoxOff = (w - wx) / 2
+        yBoxOff = (h - hx) / 2
+        myfont = pygame.font.SysFont("Trebuchet MS", int(self.squareSize * 0.35))
         if len(self.gameResultText.split("\n")) == 1:
             gameResultText = myfont.render(self.gameResultText, True, (255, 255, 255))
             gameResultTextCenter = gameResultText.get_rect()
-            gameResultTextCenter.center = ((self.dimensions[0] - self.boardSize)/4 * 3 + self.boardSize, self.dimensions[1]/2)
+            gameResultTextCenter.center = (xBoxOff + (wx - self.squareSize * 8) * 3 / 4 + self.squareSize * 8, yBoxOff + hx / 2)
             screen.blit(gameResultText, gameResultTextCenter)
         else:
 
@@ -348,16 +376,18 @@ class board():
 
             gameResultText1 = myfont.render(self.gameResultText.split("\n")[0], True, (255, 255, 255))
             gameResultTextCenter1 = gameResultText1.get_rect()
-            gameResultTextCenter1.center = ((self.dimensions[0] - self.boardSize)/4 * 3 + self.boardSize, self.dimensions[1]/2 - self.dimensions[1]/50)
+            gameResultTextCenter1.center = (xBoxOff + (wx - self.squareSize * 8) * 3 / 4 + self.squareSize * 8, yBoxOff + hx / 2 - gameResultText1.get_height() / 2)
             screen.blit(gameResultText1, gameResultTextCenter1)
             gameResultText2 = myfont.render(self.gameResultText.split("\n")[1], True, (255, 255, 255))
             gameResultTextCenter2 = gameResultText2.get_rect()
-            gameResultTextCenter2.center = ((self.dimensions[0] - self.boardSize)/4 * 3 + self.boardSize, self.dimensions[1]/2 + self.dimensions[1]/50)
+            gameResultTextCenter2.center = (xBoxOff + (wx - self.squareSize * 8) * 3 / 4 + self.squareSize * 8, yBoxOff + hx / 2 + gameResultText1.get_height() / 2)
             screen.blit(gameResultText2, gameResultTextCenter2)
 
 
     def drawBoard(self):
+
         self.updateDimensions()
+
         self.board = self.copyBoard(self.pastMoves[self.pastIndex])
         for i in range(self.reversed[0], self.reversed[1], self.reversed[2]):
             k = (i * -1 - 1) if i < 0 else i
@@ -431,9 +461,9 @@ class board():
 
                 match gameResult:
                     case 3:
-                        self.gameResultText = "Black Won By Timeout"
+                        self.gameResultText = "Black Won\nBy Timeout"
                     case 4:
-                        self.gameResultText = "White Won By Timeout"
+                        self.gameResultText = "White Won\nBy Timeout"
                     case 5:
                         self.gameResultText = "Draw\nInsufficient Material"
 
@@ -478,7 +508,7 @@ class board():
         if gameResult != -1:
             match gameResult:
                 case 0:
-                    self.gameResultText = "Checkmate By White" if self.currentMover == 1 else "Checkmate By Black"
+                    self.gameResultText = "Checkmate\nBy White" if self.currentMover == 1 else "Checkmate\nBy Black"
                 case 1:
                     self.gameResultText = "Stalemate"
                 case 2:
@@ -555,44 +585,37 @@ class board():
 
                 self.bot.updateStockFishPosition(self.toFEN())
                 botMove = self.bot.getAndFormatBestMove()
-                self.currentSelectedPiece = [botMove[0], botMove[1]]
-                prevPieceData = self.board[botMove[0]][botMove[1]]
-
-                if prevPieceData.piece == 1 or self.board[botMove[2]][botMove[3]].color != 0:
-                    self.fiftyRuleMove = 0
-                else:
-                    self.fiftyRuleMove += 1
-
-                if prevPieceData.piece == 1:
-                    prevPieceData.enPassant(self.board, self.lastPieceMoved, botMove[2], botMove[3])
-                elif prevPieceData.piece == 6:
-                    prevPieceData.castling(self.board, botMove[2], botMove[3])
-
-                self.board[botMove[2]][botMove[3]] = piece(prevPieceData.color, prevPieceData.piece, botMove[2], botMove[3], self.squareSize, prevPieceData.numberOfMoves + 1)
-                self.board[botMove[0]][botMove[1]] = piece(0, 1, 0, 0, self.squareSize, 0)
-
-                if self.board[botMove[2]][botMove[3]].piece == 1 and len(botMove) == 5:
-                    self.board[botMove[2]][botMove[3]].piece = botMove[-1]
-                    # self.board[botMove[2]][botMove[3]].updatePieceImg()
-
-
-
-                self.endOfTurn(botMove[2], botMove[3])
-                
+                self.botMoves = botMove
                 end = time.time()
                 #self.gameResultText = end-start)
 
                 self.pause()
             #time.sleep(0.1)
-    '''
 
-    I have no clue on how nor why the following two function works.
-    They were provided by our soon to be overlord, Chat-GPT.
-    Apparently getting rid of acquire() and lock() and adding with made everything work.
-    I still have no clue on what acquire(), lock() or with does.
-    I will find out soon tm.
+    def handleBotMoves(self):
+        self.currentSelectedPiece = [self.botMoves[0], self.botMoves[1]]
+        prevPieceData = self.board[self.botMoves[0]][self.botMoves[1]]
 
-    '''
+        if prevPieceData.piece == 1 or self.board[self.botMoves[2]][self.botMoves[3]].color != 0:
+            self.fiftyRuleMove = 0
+        else:
+            self.fiftyRuleMove += 1
+
+        if prevPieceData.piece == 1:
+            prevPieceData.enPassant(self.board, self.lastPieceMoved, self.botMoves[2], self.botMoves[3])
+        elif prevPieceData.piece == 6:
+            prevPieceData.castling(self.board, self.botMoves[2], self.botMoves[3])
+
+        self.board[self.botMoves[2]][self.botMoves[3]] = piece(prevPieceData.color, prevPieceData.piece, self.botMoves[2], self.botMoves[3], self.squareSize, prevPieceData.numberOfMoves + 1)
+        self.board[self.botMoves[0]][self.botMoves[1]] = piece(0, 1, 0, 0, self.squareSize, 0)
+
+        if len(self.botMoves) == 5 and self.board[self.botMoves[2]][self.botMoves[3]].piece == 1:
+            self.board[self.botMoves[2]][self.botMoves[3]].piece = self.botMoves[-1]
+            # self.board[self.botMoves[2]][self.botMoves[3]].updatePieceImg()
+
+        self.endOfTurn(self.botMoves[2], self.botMoves[3])
+
+        self.botMoves = None
 
     def pause(self):
         self.botPaused = True
@@ -609,15 +632,17 @@ class board():
     def manageTurn(self, x, y, clicked):
         if self.isGameRunning or self.timeOfStartOfMove == 0:
             if self.botActive:
-                if self.currentMover != self.botColor:
+                if self.currentMover != self.botColor and self.botMoves == None:
                     if clicked:
                         self.clickTile(x, y)
+                elif self.botMoves != None:
+                    self.handleBotMoves()
                 elif self.isGameRunning:
                     if self.timeOfStartOfMove == 0:
                         self.timeOfStartOfMove = int(time.time() * 1000)
-                        self.isGameRunning = True
+                        # self.isGameRunning = True
                     if self.botPaused:
-                        self.resume()
+                        self.resume()                
             elif clicked:
                 self.pastIndex = len(self.pastMoves)-1 
                 self.clickTile(x, y)
@@ -638,22 +663,17 @@ class board():
             sys.exit()
     
     def convertConfigParams(self, configs):
-        self.botActive, self.botColor, self.prevBtime, self.prevWtime, self.botELO, self.autoFlip, self.blackTimeIncrement, self.whiteTimeIncrement, self.boardSetup = configs
+        self.botActive, self.botColor, self.prevBtime, self.prevWtime, self.botLevel, self.autoFlip, self.blackTimeIncrement, self.whiteTimeIncrement, self.boardSetup = configs
         self.Btime, self.Wtime = self.prevBtime, self.prevWtime
         if self.botActive and self.botColor == -1:
             self.reversed = [-8, 0, 1]
-        
-        # Problem... Not sure how skill level works... so I just set it to the rating divided by 100 floored
-        # Probably won't break anything... right...?
 
-        self.bot.stockfish.update_engine_parameters({
-            "UCI_Elo": self.botELO
-        })
+        self.bot.stockfish.set_skill_level(self.botLevel)
 
     def reset(self):
 
         # Makes sure the entire program doesn't die
-        while (self.botActive and self.currentMover == self.botColor):
+        while (self.botActive and not self.botPaused):
             pass
         
         self.botPaused = True
@@ -679,6 +699,7 @@ class board():
         self.prevWtime = None
         self.Btime = None
         self.Wtime = None
+        self.botMoves = None
         self.numberOfFullmoves = 0
         self.isGameRunning = False
         self.gameResultText = ""    
@@ -729,6 +750,7 @@ class board():
 
 run = True
 
+
 board = board()
 
 board.readConfigs()
@@ -739,14 +761,12 @@ try:
     while run:
 
         screen.fill((31, 31, 31))
-
         board.drawBoard()
         board.timer()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 board.endThread()
-                #pygame.quit()
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 #x, y = pygame.mouse.get_pos()
@@ -756,17 +776,12 @@ try:
             elif event.type == pygame.MOUSEBUTTONUP:
                 x, y = pygame.mouse.get_pos()
                 board.manageTurn(x, y, True)
-            elif event.type == pygame.VIDEORESIZE:
-                width, height = event.w, event.h
-                if width/height < 1.8:
-                    width = height * 1.8
-                screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
             elif event.type == pygame.KEYDOWN:
                 if event.key == 120:
                     board.reversed = [-8, 0, 1] if board.reversed != [-8, 0, 1] else [0, 8, 1]
                 elif event.key == 114:
                     board.reset()
-                elif event.key == 115 and board.botActive and board.timeOfStartOfMove == 0 and board.botColor == -1:
+                elif event.key == 115 and board.botActive and board.timeOfStartOfMove == 0 and board.botColor == board.currentMover:
                     board.isGameRunning = True
                 elif event.key == 113 and board.isGameRunning:
                     board.resign()

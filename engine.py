@@ -12,7 +12,7 @@ class engine:
 
     def __init__(self):
         self.stockfish = stockfish.Stockfish(
-                path=os.path.dirname(os.path.abspath(__file__)) + "\\" + "stockfish\stockfish-windows-x86-64-avx2.exe"
+                path=os.path.dirname(os.path.abspath(__file__)) + "\\" + "stockfish\\stockfish-windows-x86-64-avx2.exe"
             )
 
         self.fenString = ""
