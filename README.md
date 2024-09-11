@@ -22,11 +22,14 @@ Chess... in python
 - Have the font Trebuchet MS on your system
 
 ### Setup
+- Find the <>Code button, download the zip file and unzip it on your computer (Main folder should be called chess-main)
+- Unzip the Stockfish Engine zip and place it in the chess-main folder (Also the folder that contains all of the code from the github)
 - In your terminal, run the following line of code to install all the libraries needed for the program.
   ```
   pip install -r PATH_TO_REQUIREMENTS.TXT
   ```
-  There will be a requirements.txt in the folder
+  There will be a requirements.txt within the unzipped file of the code
+- Run chess.py to run the program 
 
 ### Configs 
 Configs can be found in the config.json file. Settings should be self-explanatory. Time is measured in milliseconds. 
