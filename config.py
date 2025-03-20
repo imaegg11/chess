@@ -2,25 +2,24 @@ class config:
     def __init__(self, configSettings):
         self.configSettings = configSettings
         # Yes, I am aware that I could just use the keys of properType to check... 
-        self.properConfigHeaders = ['BotActive', 'BotColor', 'BlackTime', 'WhiteTime', 'StockfishELO', 'AutoFlip', 'BlackTimeIncrement', 'WhiteTimeIncrement', 'Board'] 
+        self.properConfigHeaders = ['BotActive', 'BotColor', 'BlackTime', 'WhiteTime', 'StockfishLevel', 'AutoFlip', 'BlackTimeIncrement', 'WhiteTimeIncrement', 'Board'] 
         self.properConfigHeadersSet = set(self.properConfigHeaders)
         self.properType = {'BotActive': True, 
                             'AutoFlip': True,
                             'BotColor' : -1,
                             'BlackTime' : 1,
                             'WhiteTime': 1,
-                            'StockfishELO': 1,
+                            'StockfishLevel': 1,
                             'BlackTimeIncrement': 0,
-                            'WhiteTimeIncrement': 0, 
-                            'Board': "I have no clue on how any of my code works ngl"
+                            'WhiteTimeIncrement': 0,
+                            'Board': "String"
                         }
         self.properValue = {'BotColor' : [-1, 1],
                             'BlackTime' : 1,
                             'WhiteTime': 1,
-                            'StockfishELO': 1,
+                            'StockfishLevel': 1,
                             'BlackTimeIncrement': 0,
-                            'WhiteTimeIncrement': 0,
-                            'Board': "I have no clue on how any of my code works ngl"
+                            'WhiteTimeIncrement': 0
                         }
         
 
